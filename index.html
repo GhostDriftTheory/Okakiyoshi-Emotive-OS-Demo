@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Wasan 2.0: A mathematical OS based on Oka Kiyoshi's philosophy of Emotion and Finite Closure. Part of the Ghost Drift Theory project by Manny.">
+    <meta name="author" content="Manny (Ghost Drift Theory)">
+    <title>Wasan 2.0: Oka Kiyoshi Edition</title>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    
+    <!-- Babel (JSX Transpiler) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- KaTeX (Math Typesetting) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css" xintegrity="sha384-GvrOXuhMATgEsSwCs4smul74iXGOixntILdUW9XmUC6+HX0sLNAK3q71HotJqlAn" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" xintegrity="sha384-cpW21h6RZv/phawnT8/K9dm6Q8Xqmj960J2icMdR67swNDhaGMW1kwO2Ld52mt5v" crossorigin="anonymous"></script>
+
+    <!-- Custom Config for Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Helvetica Neue"', 'Arial', 'sans-serif'],
+                        serif: ['"Georgia"', '"Times New Roman"', 'serif'],
+                        mono: ['"Menlo"', 'Monaco', 'monospace'],
+                    },
+                    animation: {
+                        'shimmer': 'shimmer 1.5s infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        shimmer: {
+                            '0%': { transform: 'translateX(-100%) skewX(12deg)' },
+                            '100%': { transform: 'translateX(200%) skewX(12deg)' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-5px)' },
+                        }
+                    },
+                    colors: {
+                        wasan: {
+                            bg: "#fdfcf8",
+                            ink: "#292524",
+                            accent: "#3730a3", // indigo-800
+                            subtle: "#a8a29e",
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Mobile text optimization helper */
+        .text-justify-mobile {
+            text-align: left;
+            text-justify: inter-word;
+        }
+        /* Hide scrollbar */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        body {
+            background-color: #fdfcf8;
+            color: #292524;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            /* Subtle texture for organic feel */
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        
+        /* KaTeX Font Fix */
+        .katex { font-size: 1.1em; }
+
+        /* Smooth scrolling for the whole page */
+        html { scroll-behavior: smooth; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- Math Component (KaTeX Wrapper) ---
+        const MathFormula = ({ tex }) => {
+            const containerRef = useRef(null);
+            useEffect(() => {
+                if (containerRef.current && window.katex) {
+                    window.katex.render(tex, containerRef.current, {
+                        throwOnError: false,
+                        displayMode: false
+                    });
+                }
+            }, [tex]);
+            return <span ref={containerRef} className="font-serif mx-1" />;
+        };
+
+        // --- Icon Wrapper Component ---
+        const FAIcon = ({ name, size = 16, className = "", strokeWidth }) => (
+            <i 
+                className={`fa-solid ${name} ${className}`} 
+                style={{ fontSize: size, width: size, height: size, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}
+            ></i>
+        );
+
+        // Define icons
+        const Play = (p) => <FAIcon name="fa-play" {...p} />;
+        const Pause = (p) => <FAIcon name="fa-pause" {...p} />;
+        const RefreshCw = (p) => <FAIcon name="fa-rotate" {...p} />;
+        const Shield = (p) => <FAIcon name="fa-shield-halved" {...p} />;
+        const AlertTriangle = (p) => <FAIcon name="fa-triangle-exclamation" {...p} />;
+        const Eye = (p) => <FAIcon name="fa-eye" {...p} />;
+        const Lock = (p) => <FAIcon name="fa-lock" {...p} />;
+        const Zap = (p) => <FAIcon name="fa-bolt" {...p} />;
+        const TrendingUp = (p) => <FAIcon name="fa-arrow-trend-up" {...p} />;
+        const FileCheck = (p) => <FAIcon name="fa-file-circle-check" {...p} />;
+        const CheckCircle2 = (p) => <FAIcon name="fa-circle-check" {...p} />;
+        const ArrowRight = (p) => <FAIcon name="fa-arrow-right" {...p} />;
+        const ArrowUp = (p) => <FAIcon name="fa-arrow-up" {...p} />;
+        const ArrowDown = (p) => <FAIcon name="fa-arrow-down" {...p} />;
+        const BarChart3 = (p) => <FAIcon name="fa-chart-simple" {...p} />;
+        const Activity = (p) => <FAIcon name="fa-chart-line" {...p} />;
+        const Terminal = (p) => <FAIcon name="fa-terminal" {...p} />;
+        const BookOpen = (p) => <FAIcon name="fa-book-open" {...p} />;
+        const List = (p) => <FAIcon name="fa-list" {...p} />;
+        const Heart = (p) => <FAIcon name="fa-heart" {...p} />;
+        const Globe = (p) => <FAIcon name="fa-globe" {...p} />;
+        const BoxSelect = (p) => <FAIcon name="fa-vector-square" {...p} />;
+        const Cpu = (p) => <FAIcon name="fa-microchip" {...p} />;
+        const History = (p) => <FAIcon name="fa-clock-rotate-left" {...p} />;
+        const Book = (p) => <FAIcon name="fa-book" {...p} />;
+        const X = (p) => <FAIcon name="fa-xmark" {...p} />;
+        const Layers = (p) => <FAIcon name="fa-layer-group" {...p} />;
+        const Lightbulb = (p) => <FAIcon name="fa-lightbulb" {...p} />;
+        const Sliders = (p) => <FAIcon name="fa-sliders" {...p} />;
+        const Sparkles = (p) => <FAIcon name="fa-wand-magic-sparkles" {...p} />;
+        const MapPin = (p) => <FAIcon name="fa-map-pin" {...p} />;
+        const Radio = (p) => <FAIcon name="fa-tower-broadcast" {...p} />;
+        const Microscope = (p) => <FAIcon name="fa-microscope" {...p} />;
+        const AlignLeft = (p) => <FAIcon name="fa-align-left" {...p} />;
+        const ExternalLink = (p) => <FAIcon name="fa-up-right-from-square" {...p} />;
+        const Info = (p) => <FAIcon name="fa-circle-info" {...p} />;
+
+
+        // --- App Code ---
+
+        const SCENARIO_MICRO = {
+            limit: 100,
+            initialEnergy: 40, 
+            steps: Array.from({ length: 30 }, (_, i) => {
+                const isDown = i % 5 === 2 || i % 7 === 4; 
+                const val = isDown ? 0 : Math.floor(Math.random() * 4) + 1;
+                return {
+                id: i + 1,
+                type: isDown ? 'down' : 'up',
+                increase: val,
+                label: isDown ? 'Exhale' : 'Inhale' 
+                };
+            })
+        };
+
+        const COLORS = {
+            bg: "bg-[#fdfcf8]", 
+            card: "bg-white",
+            text: "text-stone-800",
+            subText: "text-stone-500",
+            accent: "text-indigo-800",
+            safe: "text-teal-700",
+            danger: "text-rose-700",
+            border: "border-stone-200",
+            chartGrid: "#e5e5e5",
+            chartGhost: "#be123c",
+            chartSafe: "#0f766e",
+            chartPoint: "#1e3a8a",
+            okaMode: "rgba(30, 58, 138, 0.1)",
+            primeWave: "#4f46e5", 
+        };
+
+        // --- UI Components ---
+
+        const Header = ({ title, subtitle, icon, className = "" }) => (
+            <div className={`flex items-start gap-3 md:gap-4 mb-2 md:mb-0 ${className}`}>
+                <div className="p-2.5 md:p-3 bg-white rounded-sm border border-stone-200 text-indigo-800 shadow-sm shrink-0 mt-1 md:mt-0 animate-float">
+                {icon}
+                </div>
+                <div>
+                <h2 className="text-lg md:text-xl font-bold text-stone-800 tracking-tight font-serif leading-tight">{title}</h2>
+                <p className="text-[10px] md:text-xs font-mono text-stone-400 tracking-widest uppercase mt-0.5">{subtitle}</p>
+                </div>
+            </div>
+        );
+
+        const Badge = ({ text, color }) => {
+            const styles = {
+                data: "bg-indigo-50 text-indigo-700 border-indigo-100",
+                model: "bg-teal-50 text-teal-700 border-teal-100",
+                ghost: "bg-rose-50 text-rose-700 border-rose-100"
+            };
+            return (
+                <span className={`px-2 py-1 rounded-sm text-[10px] font-bold border ${styles[color]} uppercase tracking-wider inline-block`}>
+                {text}
+                </span>
+            );
+        };
+
+        const TabButton = ({ active, onClick, label, isDanger }) => (
+            <button
+                onClick={onClick}
+                className={`w-full py-3 px-3 md:px-4 rounded-sm text-[11px] md:text-xs font-bold flex items-center justify-between transition-all font-serif shadow-sm active:scale-[0.98] touch-manipulation ${
+                active 
+                    ? (isDanger ? 'bg-rose-700 text-white shadow-md ring-2 ring-rose-200' : 'bg-indigo-900 text-white shadow-md ring-2 ring-indigo-200')
+                    : 'bg-white text-stone-500 hover:bg-stone-50 border border-transparent hover:border-stone-200'
+                }`}
+            >
+                <span className="truncate mr-2">{label}</span>
+                {active && <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse shrink-0"></div>}
+            </button>
+        );
+
+        const Button = ({ onClick, label, icon, primary }) => (
+            <button
+                onClick={onClick}
+                className={`group w-full py-3.5 md:py-4 px-4 md:px-6 rounded-sm font-bold text-xs tracking-widest flex items-center justify-center gap-3 transition-all transform active:scale-[0.98] shadow-md border touch-manipulation ${
+                primary 
+                    ? 'bg-indigo-800 text-white border-indigo-900 hover:bg-indigo-900 shadow-indigo-100' 
+                    : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+                }`}
+            >
+                {label}
+                <span className="group-hover:translate-x-1 transition-transform">{icon}</span>
+            </button>
+        );
+
+        const StatusMonitor = ({ label, value, isDanger }) => (
+            <div className={`p-3 md:p-4 rounded-sm border ${isDanger ? 'bg-rose-50 border-rose-200' : 'bg-stone-50 border-stone-200'} flex justify-between items-center shadow-inner`}>
+                <span className="text-[10px] font-mono text-stone-500">{label}</span>
+                <span className={`font-bold tracking-wider text-xs md:text-sm ${isDanger ? 'text-rose-600 animate-pulse' : 'text-teal-700'}`}>
+                {value}
+                </span>
+            </div>
+        );
+
+        const Legend = ({ color, label }) => (
+            <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${color} shadow-sm shrink-0`}></div>
+                <span className="text-[10px] font-bold text-stone-600 font-serif leading-none">{label}</span>
+            </div>
+        );
+
+        const AxisGuide = () => (
+            <div className="absolute top-3 left-3 md:top-4 md:left-4 bg-white/90 backdrop-blur-sm border border-stone-200 p-1.5 md:p-2 rounded-sm shadow-sm z-10 pointer-events-none">
+                <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1.5 text-[9px] md:text-[10px] text-stone-500 font-serif">
+                    <ArrowUp size={8} className="text-stone-400" />
+                    <span>Y: Energy</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[9px] md:text-[10px] text-stone-500 font-serif">
+                    <ArrowRight size={8} className="text-stone-400" />
+                    <span>X: Time (n)</span>
+                </div>
+                </div>
+            </div>
+        );
+
+        // --- Phase Components ---
+
+        const IntroPhase = ({ onNext, onAdvanced }) => {
+            return (
+                <div className="flex flex-col items-center text-center space-y-6 md:space-y-8 animate-fade-in py-6 md:py-12 w-full">
+                <div className="relative">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 md:w-24 md:h-24 bg-indigo-50 rounded-full blur-2xl animate-pulse-slow"></div>
+                    <div className="relative bg-white p-5 md:p-6 rounded-full border border-stone-100 shadow-xl">
+                    <BookOpen size={40} className="text-indigo-800 md:w-12 md:h-12" strokeWidth={1.5} />
+                    </div>
+                </div>
+                
+                <div className="space-y-4 max-w-2xl px-2">
+                    <h1 className="text-2xl sm:text-3xl md:text-5xl font-serif font-bold text-stone-900 tracking-tight leading-snug md:leading-tight">
+                    Preserving Emotion: <br className="md:hidden"/> <span className="text-rose-700 inline-block">"Ghost Sealing"</span><br/>
+                    via <span className="text-indigo-800 inline-block">Wasan</span>
+                    </h1>
+                    <div className="h-px w-16 md:w-24 bg-indigo-900/20 mx-auto my-4 md:my-6"></div>
+                    <p className="text-[10px] md:text-base text-stone-500 font-serif tracking-widest uppercase">
+                    Mathematics as Emotion · Oka Kiyoshi × Finite Closure
+                    </p>
+                </div>
+
+                <div className="bg-white p-6 md:p-8 rounded-sm border border-stone-200 shadow-lg w-full max-w-xl text-left relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-indigo-800"></div>
+                    <div className="text-sm md:text-base text-stone-600 font-serif leading-8 md:leading-9 text-justify-mobile space-y-4">
+                    <p>
+                        Modern computing assumes the world is "smooth." Yet, all we ever truly see are discrete points (data).
+                    </p>
+                    <p>
+                        In this demo, you will experience an OS that accepts <strong className="font-bold text-indigo-800">Emotion</strong>—the spontaneous, uncontrollable movements of the mind—using only finite addition. This reflects the philosophy of mathematician Kiyoshi Oka.
+                    </p>
+                    </div>
+                </div>
+
+                {/* 3-Step Tutorial */}
+                <div className="bg-stone-50 px-4 py-4 md:px-6 md:py-4 rounded-sm border border-stone-200 w-full max-w-md">
+                    <h3 className="text-[10px] font-bold text-stone-500 mb-3 uppercase tracking-widest text-center">Quick Tutorial</h3>
+                    <div className="flex justify-between items-start text-[10px] font-serif text-stone-700 gap-1 md:gap-2">
+                    <div className="flex-1 text-center flex flex-col items-center gap-1">
+                        <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold mb-1">1</div>
+                        <span className="leading-tight inline-block"><span className="font-bold">Shift</span><br/>Viewpoint</span>
+                    </div>
+                    <div className="text-stone-300 mt-2">→</div>
+                    <div className="flex-1 text-center flex flex-col items-center gap-1">
+                        <div className="w-5 h-5 rounded-full bg-rose-100 text-rose-800 flex items-center justify-center font-bold mb-1">2</div>
+                        <span className="leading-tight inline-block"><span className="font-bold">Tune</span><br/>Emotion</span>
+                    </div>
+                    <div className="text-stone-300 mt-2">→</div>
+                    <div className="flex-1 text-center flex flex-col items-center gap-1">
+                        <div className="w-5 h-5 rounded-full bg-teal-100 text-teal-800 flex items-center justify-center font-bold mb-1">3</div>
+                        <span className="leading-tight inline-block"><span className="font-bold">Seal</span><br/>in Ledger</span>
+                    </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-3 w-full max-w-xs">
+                    <Button onClick={onNext} label="Start Chapter 1" icon={<ArrowRight size={16}/>} primary />
+                    <button 
+                    onClick={onAdvanced}
+                    className="text-xs text-stone-400 underline hover:text-stone-600 transition-colors font-serif py-2"
+                    >
+                    * Advanced: Theory & History
+                    </button>
+                </div>
+                </div>
+            );
+        };
+
+        // --- Shared Controls Renderer for reuse in mobile/desktop ---
+        const Chapter1Controls = ({ viewState, setViewState, onNext }) => (
+            <React.Fragment>
+                <div className="bg-white border border-stone-200 shadow-sm rounded-sm p-4 md:p-6 flex flex-col justify-between h-auto gap-4 md:gap-4">
+                    <div className="space-y-3 md:space-y-4">
+                        <Badge text={viewState === 'data' ? "1. Finite Points" : viewState === 'model' ? "2. Smooth (Local)" : "3. Raw Life"} color={viewState} />
+                        <div className="text-xs md:text-sm text-stone-600 leading-relaxed font-serif text-justify-mobile">
+                            <p>
+                            {viewState === 'data' && "We only see 'dots'. But AI and science arbitrarily connect them."}
+                            {viewState === 'model' && "Assuming 'smoothness' (Dead Math) makes calculation easy, but ignores the raw reality of life."}
+                            {viewState === 'ghost' && "Mathematically, anything can happen between points. This is where the invisible 'Ghost' hides."}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-2 border-t border-stone-100 pt-4">
+                        <TabButton active={viewState==='data'} onClick={()=>setViewState('data')} label="Data Only" />
+                        <TabButton active={viewState==='model'} onClick={()=>setViewState('model')} label="Smooth Model" />
+                        <TabButton active={viewState==='ghost'} onClick={()=>setViewState('ghost')} label="Ghost Mode" isDanger />
+                    </div>
+                </div>
+                {viewState === 'ghost' && (
+                    <div className="animate-fade-in-up mt-2">
+                        <Button onClick={onNext} label="Next: The Global View" icon={<ArrowRight size={16}/>} primary />
+                    </div>
+                )}
+            </React.Fragment>
+        );
+
+        const Chapter1 = ({ onNext }) => {
+            const canvasRef = useRef(null);
+            const [viewState, setViewState] = useState('data');
+
+            useEffect(() => {
+                const ctx = canvasRef.current?.getContext('2d');
+                if (!ctx) return;
+                const w = 800, h = 450;
+                ctx.clearRect(0,0,w,h);
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,w,h); 
+                ctx.strokeStyle = COLORS.chartGrid; ctx.lineWidth = 1;
+                for(let i=0; i<w; i+=40) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
+                for(let i=0; i<h; i+=40) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(w,i); ctx.stroke(); }
+                const points = Array.from({length: 9}, (_,i) => ({x: (i+1)*(w/10), y: h/2 + Math.sin(i+1)*50}));
+                if(viewState === 'ghost') {
+                    ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y);
+                    for(let i=0; i<points.length-1; i++){
+                        const p1 = points[i], p2 = points[i+1], mid = (p1.x+p2.x)/2;
+                        const drift = (i%2===0 ? -120 : 120);
+                        ctx.bezierCurveTo(p1.x+20, p1.y, mid, p1.y+drift, mid, p1.y+drift/2);
+                        ctx.bezierCurveTo(mid, p2.y+drift/2, p2.x-20, p2.y, p2.x, p2.y);
+                    }
+                    ctx.strokeStyle = COLORS.chartGhost; ctx.lineWidth = 2.5; ctx.stroke();
+                }
+                if(viewState === 'model' || viewState === 'ghost') {
+                    ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y);
+                    for(let i=0; i<points.length-1; i++){
+                        const xc = (points[i].x + points[i+1].x)/2;
+                        const yc = (points[i].y + points[i+1].y)/2;
+                        ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+                    }
+                    ctx.lineTo(points[5].x, points[5].y);
+                    ctx.strokeStyle = viewState === 'ghost' ? 'rgba(15, 118, 110, 0.2)' : COLORS.chartSafe; 
+                    ctx.lineWidth = 3; ctx.stroke();
+                }
+                points.forEach(p => {
+                    ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
+                    ctx.fillStyle = COLORS.chartPoint; ctx.fill(); ctx.lineWidth = 0; ctx.stroke();
+                });
+            }, [viewState]);
+
+            return (
+                <div className="flex flex-col md:grid md:grid-cols-3 gap-6 md:gap-8 w-full animate-fade-in">
+                    {/* Header (Always First) */}
+                    <div className="md:col-span-1 md:row-start-1 order-1">
+                        <Header title="Ch 1: Local Blind Spot" subtitle="The Local Trap" icon={<Eye/>} />
+                        {/* Desktop Controls */}
+                        <div className="hidden md:block h-full">
+                            <Chapter1Controls viewState={viewState} setViewState={setViewState} onNext={onNext} />
+                        </div>
+                    </div>
+
+                    {/* Chart (Always Second on Mobile) */}
+                    <div className="md:col-span-2 md:row-span-2 order-2 bg-white rounded-sm border border-stone-200 shadow-xl overflow-hidden relative group aspect-video md:aspect-auto">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-800 to-stone-200"></div>
+                        <AxisGuide />
+                        <canvas ref={canvasRef} width={800} height={450} className="w-full h-full object-contain" />
+                        <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 flex flex-wrap gap-2 md:gap-6 bg-white/90 px-3 py-2 md:px-4 md:py-2 rounded-sm border border-stone-200 backdrop-blur-sm shadow-sm max-w-[90%]">
+                            <Legend color="bg-indigo-800" label="Data" />
+                            {viewState !== 'data' && <Legend color="bg-teal-700" label="Model" />}
+                            {viewState === 'ghost' && <Legend color="bg-rose-700" label="Ghost" />}
+                        </div>
+                    </div>
+
+                    {/* Mobile Controls (Third) */}
+                    <div className="md:hidden order-3">
+                        <Chapter1Controls viewState={viewState} setViewState={setViewState} onNext={onNext} />
+                    </div>
+                </div>
+            );
+        };
+
+        const Chapter2 = ({ onNext }) => {
+            const canvasRef = useRef(null);
+            const [viewMode, setViewMode] = useState('local'); 
+            const [hasHole, setHasHole] = useState(false); 
+            const [isAbsorbed, setIsAbsorbed] = useState(false); 
+            const timeRef = useRef(0);
+            const mapY = (val) => 400 - (val * 3);
+            const sectionWidth = 800 / 5;
+            const calculateEmotion = () => {
+                let score = 100;
+                if (hasHole && !isAbsorbed) score -= 60; 
+                if (viewMode === 'local' && hasHole) score -= 20; 
+                if (hasHole && isAbsorbed) score = 90; 
+                return Math.max(0, Math.min(100, score));
+            };
+            const emotionScore = calculateEmotion();
+
+            useEffect(() => {
+                let animId;
+                const ctx = canvasRef.current?.getContext('2d');
+                if (!ctx) return;
+                const render = () => {
+                    timeRef.current += 0.05;
+                    const t = timeRef.current;
+                    const w = 800, h = 450;
+                    ctx.clearRect(0,0,w,h);
+                    ctx.fillStyle = viewMode === 'oka' ? COLORS.okaMode : '#ffffff'; 
+                    ctx.fillRect(0,0,w,h);
+                    ctx.strokeStyle = COLORS.chartGrid; ctx.lineWidth = 1;
+                    for(let i=0; i<w; i+=40) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
+                    const limitY = mapY(100); 
+                    if (viewMode === 'oka') {
+                        ctx.fillStyle = 'rgba(20, 184, 166, 0.05)';
+                        ctx.fillRect(0, limitY, w, mapY(0) - limitY);
+                        ctx.strokeStyle = COLORS.chartSafe; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
+                        ctx.beginPath(); ctx.moveTo(0, limitY); ctx.lineTo(w, limitY); ctx.stroke();
+                        ctx.setLineDash([]);
+                        ctx.fillStyle = COLORS.chartSafe; ctx.font = "bold 13px 'Noto Serif JP', serif";
+                        ctx.fillText(`Limit Line = 100 [Global Bound]`, 10, limitY - 10);
+                    }
+                    ctx.strokeStyle = '#94a3b8'; ctx.setLineDash([4,4]);
+                    for(let i=1; i<5; i++) { ctx.beginPath(); ctx.moveTo(i*sectionWidth, 0); ctx.lineTo(i*sectionWidth, h); ctx.stroke(); }
+                    ctx.setLineDash([]);
+                    const points = [{x: 0, y: mapY(25)}];
+                    const steps = [40, 55, 40, 65, 80]; 
+                    steps.forEach((val, i) => {
+                        let v = val;
+                        if (hasHole && i === 2 && !isAbsorbed) { v = val + Math.sin(t * 10) * 20; }
+                        points.push({ x: (i+1) * sectionWidth, y: mapY(v) });
+                    });
+                    if (viewMode === 'local') {
+                        ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y);
+                        for(let i=0; i<points.length-1; i++) {
+                            if (hasHole && i === 2 && !isAbsorbed) { ctx.stroke(); ctx.beginPath(); ctx.setLineDash([5,5]); ctx.strokeStyle = COLORS.danger; } 
+                            else { ctx.setLineDash([]); ctx.strokeStyle = COLORS.subText; }
+                            const xc = (points[i].x + points[i+1].x)/2; const yc = (points[i].y + points[i+1].y)/2;
+                            ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+                        }
+                        ctx.lineTo(points[5].x, points[5].y); ctx.stroke(); ctx.setLineDash([]);
+                    } else {
+                        ctx.beginPath(); ctx.moveTo(points[0].x, mapY(0)); ctx.lineTo(points[0].x, points[0].y);
+                        for(let i=0; i<points.length-1; i++) {
+                            const xc = (points[i].x + points[i+1].x)/2; const yc = (points[i].y + points[i+1].y)/2;
+                            ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+                        }
+                        ctx.lineTo(points[5].x, points[5].y); ctx.lineTo(points[5].x, mapY(0)); ctx.closePath();
+                        ctx.fillStyle = 'rgba(79, 70, 229, 0.1)'; ctx.fill(); ctx.strokeStyle = COLORS.accent; ctx.lineWidth = 3; ctx.stroke();
+                    }
+                    if (hasHole) {
+                        const holeX = 2.5 * sectionWidth;
+                        if (isAbsorbed) {
+                            const rectX = 2 * sectionWidth; const rectW = sectionWidth; const rectY = limitY; const rectH = mapY(0) - limitY;
+                            ctx.fillStyle = 'rgba(15, 118, 110, 0.1)'; ctx.fillRect(rectX, rectY, rectW, rectH);
+                            ctx.strokeStyle = COLORS.chartSafe; ctx.lineWidth = 2; ctx.strokeRect(rectX, rectY, rectW, rectH);
+                            ctx.fillStyle = COLORS.chartSafe; ctx.font = "bold 12px sans-serif"; ctx.fillText("OS BOUNDARY", rectX + 10, rectY + 20);
+                        } else {
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; ctx.beginPath(); ctx.arc(holeX, h/2, 40, 0, Math.PI*2); ctx.fill();
+                            ctx.strokeStyle = COLORS.danger; ctx.lineWidth = 2; ctx.setLineDash([5,3]); ctx.stroke(); ctx.setLineDash([]);
+                            ctx.fillStyle = COLORS.danger; ctx.font = "bold 14px sans-serif"; ctx.fillText("UNKNOWN VOID", holeX - 50, h/2 + 5);
+                        }
+                    }
+                    points.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fillStyle = COLORS.chartPoint; ctx.fill(); ctx.lineWidth = 0; ctx.stroke(); });
+                    animId = requestAnimationFrame(render);
+                };
+                render();
+                return () => cancelAnimationFrame(animId);
+            }, [viewMode, hasHole, isAbsorbed]);
+
+            const Chapter2Controls = () => (
+                <div className="bg-white border border-stone-200 rounded-sm p-4 md:p-5 flex flex-col gap-4 shadow-sm h-full">
+                    <div className="space-y-2">
+                        <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">1. Switch Perspective</h4>
+                        <div className="flex bg-stone-100 p-1 rounded-sm border border-stone-200">
+                            <button onClick={() => setViewMode('local')} className={`flex-1 py-2 text-[11px] md:text-xs font-bold rounded-sm transition-all ${viewMode==='local' ? 'bg-white shadow-sm text-stone-800' : 'text-stone-400'}`}>Local View</button>
+                            <button onClick={() => setViewMode('oka')} className={`flex-1 py-2 text-[11px] md:text-xs font-bold rounded-sm transition-all ${viewMode==='oka' ? 'bg-indigo-800 shadow-sm text-white' : 'text-stone-400'}`}>Oka View (Whole)</button>
+                        </div>
+                        <p className="text-[10px] text-stone-500 font-serif leading-relaxed text-justify-mobile">
+                            Locally, it looks "fine". But Oka argued that the truth flips when viewing the "Whole Domain".
+                        </p>
+                        <div className="text-[10px] text-indigo-800 bg-indigo-50 p-2 rounded-sm border border-indigo-100 mt-2 font-serif flex gap-2 items-start leading-relaxed text-justify-mobile">
+                            <History size={12} className="mt-0.5 flex-shrink-0" />
+                            <span>In the 1930s-40s, this "Global View" solved difficult problems (like the Cousin problems) that had stumped the world.</span>
+                        </div>
+                    </div>
+                    <div className="space-y-2 border-t border-stone-100 pt-4">
+                        <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">2. Unobserved Hole</h4>
+                        {!hasHole ? (
+                            <button onClick={() => { setHasHole(true); setIsAbsorbed(false); }} className="w-full py-3 bg-stone-50 hover:bg-stone-100 border border-stone-200 text-stone-600 text-xs font-bold rounded-sm flex items-center justify-center gap-2"><BoxSelect size={14}/> Open Hole (Anxiety)</button>
+                        ) : (
+                            <div className="space-y-2">
+                                <div className="p-2 bg-rose-50 border border-rose-100 text-rose-700 text-[10px] md:text-xs font-serif text-center font-bold">Data Loss Detected</div>
+                                <div className="flex gap-2">
+                                    <button onClick={() => setHasHole(false)} className="flex-1 py-2 bg-white border border-stone-200 text-stone-500 text-[10px] md:text-xs rounded-sm">Close</button>
+                                    <button onClick={() => setIsAbsorbed(!isAbsorbed)} className={`flex-1 py-2 border text-[10px] md:text-xs font-bold rounded-sm ${isAbsorbed ? 'bg-teal-50 border-teal-200 text-teal-700' : 'bg-indigo-600 border-indigo-700 text-white'}`}>{isAbsorbed ? 'Absorbed' : 'OS Containment'}</button>
+                                </div>
+                            </div>
+                        )}
+                        <p className="text-[10px] text-stone-500 font-serif leading-relaxed text-justify-mobile">
+                            The "hole" represents unmeasured anxiety. Oka View checks if it's "safe as a whole", even with holes.
+                        </p>
+                    </div>
+                    <div className="mt-auto pt-4 border-t border-stone-100">
+                        <StatusMonitor label="Emotion Meter" value={emotionScore < 50 ? "UNSTABLE" : "STABLE"} isDanger={emotionScore < 50} />
+                        <div className="w-full h-1 bg-stone-100 mt-2 rounded-full overflow-hidden">
+                            <div className={`h-full transition-all duration-500 ${emotionScore < 50 ? 'bg-rose-500' : 'bg-indigo-600'}`} style={{width: `${emotionScore}%`}}></div>
+                        </div>
+                    </div>
+                    <div className="pt-2">
+                        <Button onClick={onNext} label="Next: Emotion & Prime Gravity" icon={<ArrowRight size={16}/>} primary />
+                    </div>
+                </div>
+            );
+
+            return (
+                <div className="flex flex-col md:grid md:grid-cols-3 gap-6 md:gap-8 w-full animate-fade-in">
+                    {/* Header First */}
+                    <div className="md:col-span-1 md:row-start-1 order-1">
+                        <Header title="Ch 2: The Oka View" subtitle="Seeing the Whole" icon={<Globe/>} />
+                        <div className="hidden md:block h-full"><Chapter2Controls /></div>
+                    </div>
+                    {/* Chart Second */}
+                    <div className="md:col-span-2 md:row-span-2 order-2 bg-white rounded-sm border border-stone-200 shadow-xl overflow-hidden relative aspect-video md:aspect-auto">
+                        <AxisGuide />
+                        <canvas ref={canvasRef} width={800} height={450} className="w-full h-full object-contain" />
+                    </div>
+                    {/* Controls Third (Mobile) */}
+                    <div className="md:hidden order-3"><Chapter2Controls /></div>
+                </div>
+            );
+        };
+
+        const ChapterPrime = ({ onNext, onPrimeEnergyChange }) => {
+            const canvasRef = useRef(null);
+            const [tuningLevel, setTuningLevel] = useState(70); 
+            const [mode, setMode] = useState('static');
+            const [range, setRange] = useState(120);
+            const [currentEnergy, setCurrentEnergy] = useState(0); 
+
+            useEffect(() => {
+                const ctx = canvasRef.current?.getContext('2d');
+                if (!ctx) return;
+                const w = 800; const h = 450; const margin = { left: 40, right: 40, top: 40, bottom: 40 };
+                ctx.clearRect(0, 0, w, h); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h);
+                ctx.strokeStyle = COLORS.chartGrid; ctx.lineWidth = 1;
+                for (let i = margin.left; i < w - margin.right; i += 40) { ctx.beginPath(); ctx.moveTo(i, margin.top); ctx.lineTo(i, h - margin.bottom); ctx.stroke(); }
+                for (let j = margin.top; j < h - margin.bottom; j += 40) { ctx.beginPath(); ctx.moveTo(margin.left, j); ctx.lineTo(w - margin.right, j); ctx.stroke(); }
+
+                const primes = [];
+                const isPrime = (n) => { if (n < 2) return false; for (let i = 2; i * i <= n; i++) { if (n % i === 0) return false; } return true; };
+                for (let n = 2; n <= range; n++) { if (isPrime(n)) primes.push(n); }
+
+                const alpha = 0.08; const baseValues = [];
+                for (let x = 1; x <= range; x++) {
+                    let sum = 0; for (const p of primes) { const d = Math.abs(x - p); sum += Math.exp(-alpha * d); }
+                    baseValues.push(sum);
+                }
+                let values = baseValues;
+                if (mode === 'living') { values = baseValues.map((v, idx) => { const pulse = 1.2 * Math.sin(idx * 0.8) + 0.8 * Math.cos(idx * 2.3) + (idx % 17 === 0 ? 2.5 : 0); return Math.max(0, v + pulse); }); }
+
+                let max = 0; let peakIndex = 0;
+                values.forEach((v, i) => { if (v > max) { max = v; peakIndex = i; } });
+                const mean = values.reduce((s, v) => s + v, 0) / (values.length || 1);
+
+                const spanX = w - margin.left - margin.right; const spanY = h - margin.top - margin.bottom; const baseY = h - margin.bottom;
+                const displayMax = Math.max(max * 1.2, 10); const norm = displayMax;
+                const mapX = (x) => margin.left + ((x - 1) / (range - 1)) * spanX;
+                const mapY = (v) => baseY - (v / norm) * spanY;
+
+                const openness = tuningLevel / 100;
+                const capacityValue = mean + (max * 1.3 - mean) * (0.2 + openness * 0.9);
+                const capacityY = mapY(capacityValue);
+
+                ctx.fillStyle = 'rgba(16, 185, 129, 0.08)'; ctx.fillRect(margin.left, capacityY, spanX, baseY - capacityY);
+                ctx.strokeStyle = COLORS.chartSafe; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+                ctx.beginPath(); ctx.moveTo(margin.left, capacityY); ctx.lineTo(margin.left + spanX, capacityY); ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = COLORS.chartSafe; ctx.font = "bold 12px sans-serif"; ctx.fillText(`Emotion Vessel`, margin.left + spanX + 5, capacityY + 4);
+
+                let countUnder = 0; ctx.lineWidth = 2.5;
+                for (let x = 1; x < values.length; x++) {
+                    const p1 = { x: mapX(x), y: mapY(values[x-1]) }; const p2 = { x: mapX(x+1), y: mapY(values[x]) };
+                    if (values[x-1] <= capacityValue) countUnder++;
+                    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+                    if (values[x-1] > capacityValue || values[x] > capacityValue) { ctx.strokeStyle = COLORS.danger; } else { ctx.strokeStyle = COLORS.primeWave; }
+                    ctx.stroke();
+                }
+                if (values[values.length-1] <= capacityValue) countUnder++;
+
+                const peakX = mapX(peakIndex + 1); const peakY = mapY(max);
+                ctx.beginPath(); ctx.arc(peakX, peakY, 5, 0, Math.PI * 2); ctx.fillStyle = COLORS.accent; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+                ctx.fillStyle = COLORS.accent; ctx.font = "bold 12px sans-serif"; ctx.fillText(`Peak Energy`, peakX - 40, peakY - 15);
+                
+                ctx.strokeStyle = COLORS.chartPoint; ctx.lineWidth = 1;
+                primes.forEach((p) => {
+                    const px = mapX(p); ctx.beginPath(); ctx.moveTo(px, baseY); ctx.lineTo(px, baseY - 6); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(px, baseY - 6, 2, 0, Math.PI * 2); ctx.fillStyle = COLORS.chartPoint; ctx.fill();
+                });
+                ctx.fillStyle = '#64748b'; ctx.font = "11px 'Noto Sans JP', sans-serif"; ctx.fillText("n", margin.left + spanX / 2 - 20, h - 10);
+
+                const rawMax = Math.max(10, Math.round(max * 6));
+                const emotionFactor = 1.2 - (openness * 0.6); 
+                const adjustedE0 = Math.round(rawMax * emotionFactor);
+                const e0 = Math.min(99, Math.max(10, adjustedE0)); 
+                
+                setCurrentEnergy(e0);
+                onPrimeEnergyChange(e0);
+            }, [range, tuningLevel, mode]);
+
+            const isProjectedSafe = (currentEnergy + 50) <= 100;
+
+            const ChapterPrimeControls = () => (
+                <div className="flex flex-col gap-4 md:gap-5">
+                    <div className="bg-white border-l-4 border-indigo-800 p-4 rounded-r-sm shadow-sm border-y border-r border-stone-200">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Radio size={16} className="text-indigo-800"/>
+                        <h4 className="text-xs font-bold text-stone-800 font-serif">1. Tuning into Emotion</h4>
+                    </div>
+                    <p className="text-[11px] text-stone-600 font-serif leading-relaxed mb-3 text-justify-mobile">
+                        If you tune into <strong className="text-indigo-800">Emotion</strong>, you can absorb the shock. Closing the mind (Ego) makes it brittle.
+                    </p>
+                    
+                    <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] text-stone-500 font-bold">
+                        <span>Ego (Reject)</span>
+                        <span>Emotion (Accept)</span>
+                        </div>
+                        <input 
+                        type="range" 
+                        min={0} max={100} step={5} 
+                        value={tuningLevel} 
+                        onChange={(e) => setTuningLevel(parseInt(e.target.value))}
+                        className="w-full h-8 md:h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-indigo-800 touch-pan-x"
+                        />
+                        <div className="text-right text-[10px] font-mono text-indigo-800">TUNING: {tuningLevel}%</div>
+                    </div>
+                    </div>
+
+                    <div className="bg-white border border-stone-200 rounded-sm p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                        <Sparkles size={16} className={mode==='living' ? "text-rose-600" : "text-stone-400"}/>
+                        <h4 className="text-xs font-bold text-stone-800 font-serif">2. To Living Math</h4>
+                    </div>
+                    <div className="flex gap-2">
+                        <button onClick={() => setMode('static')} className={`flex-1 py-3 md:py-2 text-[11px] md:text-xs font-bold rounded-sm border transition-all ${mode==='static' ? 'bg-indigo-50 border-indigo-200 text-indigo-800' : 'bg-white border-stone-200 text-stone-400'}`}>Dead Math</button>
+                        <button onClick={() => setMode('living')} className={`flex-1 py-3 md:py-2 text-[11px] md:text-xs font-bold rounded-sm border transition-all ${mode==='living' ? 'bg-rose-50 border-rose-200 text-rose-700 shadow-inner' : 'bg-white border-stone-200 text-stone-400'}`}>Living Math</button>
+                    </div>
+                    {mode === 'living' && (
+                        <p className="text-[10px] text-rose-600 mt-2 font-serif leading-tight">
+                        * Fluctuations intensify. Increase tuning to absorb.
+                        </p>
+                    )}
+                    </div>
+
+                    <div className="bg-stone-50 border border-stone-200 rounded-sm p-4 shadow-inner">
+                    <div className="flex items-center justify-between mb-1">
+                        <h4 className="text-xs font-bold text-stone-600 font-serif">3. Effective Energy (E₀)</h4>
+                        <span className={`text-sm font-bold ${isProjectedSafe ? 'text-teal-700' : 'text-rose-600'}`}>
+                        {isProjectedSafe ? 'SAFE' : 'DANGER'}
+                        </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-stone-200 rounded-full overflow-hidden mb-2">
+                        <div className={`h-full transition-all duration-500 ${isProjectedSafe ? 'bg-teal-500' : 'bg-rose-500'}`} style={{width: `${Math.min(100, (currentEnergy / 50) * 100)}%`}}></div>
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-stone-200 pt-3 mt-3">
+                        <div className="text-[10px] text-stone-500 font-serif leading-tight">
+                        Shock Value <br/>after Mitigation <span className="font-mono font-bold text-base">E₀</span>
+                        </div>
+                        <div className="text-2xl font-mono font-bold text-indigo-900 bg-white px-4 py-2 rounded border border-indigo-100 shadow-sm">
+                        {currentEnergy}
+                        </div>
+                    </div>
+                    <div className="mt-2 text-[10px] text-indigo-800 bg-indigo-50 p-2 rounded-sm border border-indigo-100 font-serif flex items-start gap-1">
+                        <Info size={12} className="mt-0.5 flex-shrink-0"/>
+                        <p className="leading-tight">The hardest shock after smoothing prime fluctuations with emotion.</p>
+                    </div>
+                    
+                    <div className="mt-2 text-[10px] text-stone-400 text-right">
+                        * If E₀ &le; 50, you can clear the next chapter.
+                    </div>
+                    </div>
+
+                    <Button onClick={onNext} label="Next: Ledger of Micro-Fluctuations" icon={<ArrowRight size={16}/>} primary />
+                </div>
+            );
+
+            return (
+                <div className="flex flex-col md:grid md:grid-cols-3 gap-6 md:gap-8 w-full animate-fade-in">
+                    <div className="md:col-span-1 md:row-start-1 order-1">
+                        <Header title="Ch 3: Prime Gravity" subtitle="Spontaneous Emotion & Living Math" icon={<Activity/>} />
+                        <div className="hidden md:block"><ChapterPrimeControls /></div>
+                    </div>
+                    <div className="md:col-span-2 md:row-span-2 order-2 bg-white rounded-sm border border-stone-200 shadow-xl overflow-hidden relative aspect-video md:aspect-auto">
+                        <AxisGuide />
+                        <canvas ref={canvasRef} width={800} height={450} className="w-full h-full object-contain" />
+                        <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 flex flex-wrap gap-3 md:gap-6 bg-white/90 px-3 py-2 md:px-4 md:py-2 rounded-sm border border-stone-200 backdrop-blur-sm shadow-sm">
+                        <Legend color="bg-teal-500" label="Vessel" />
+                        <Legend color={mode==='static' ? "bg-indigo-600" : "bg-rose-600"} label={mode==='static' ? "Prime Wave" : "Life"} />
+                        </div>
+                    </div>
+                    <div className="md:hidden order-3"><ChapterPrimeControls /></div>
+                </div>
+            );
+        };
+
+        const Chapter3 = ({ onNext, primeEnergy }) => {
+            const [step, setStep] = useState(0);
+            const [data, setData] = useState([]);
+            const scrollRef = useRef(null);
+            const intervalRef = useRef(null);
+            const effectiveInitialEnergy = primeEnergy !== null ? primeEnergy : SCENARIO_MICRO.initialEnergy;
+
+            useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [data]);
+            useEffect(() => { return () => { if(intervalRef.current) clearInterval(intervalRef.current); }; }, []);
+
+            const runCalc = () => {
+                if(intervalRef.current) clearInterval(intervalRef.current);
+                setStep(0); setData([]); let cur = 0;
+                const interval = setInterval(() => {
+                cur++; setStep(cur); const s = SCENARIO_MICRO.steps[cur-1];
+                setData(prev => {
+                    const lastH = prev.length > 0 ? prev[prev.length-1].currentHeight : effectiveInitialEnergy;
+                    return [...prev, { ...s, currentHeight: lastH + s.increase }];
+                });
+                if(cur >= SCENARIO_MICRO.steps.length) { clearInterval(interval); intervalRef.current = null; }
+                }, 80); 
+                intervalRef.current = interval;
+            };
+
+            const isFinished = step >= SCENARIO_MICRO.steps.length;
+            const currentTotal = data.length > 0 ? data[data.length-1].currentHeight : effectiveInitialEnergy;
+            const isSafe = currentTotal <= SCENARIO_MICRO.limit;
+
+            const Chapter3Controls = () => (
+                <div className="flex flex-col gap-4 md:gap-6">
+                    <div className="text-xs text-stone-600 font-serif leading-relaxed mb-2 border-b border-stone-100 pb-2 text-justify-mobile">
+                    Using the <strong className="text-indigo-800">Shock Value (E₀)</strong> from Chapter 3, we check if adding all subsequent tremors exceeds the Limit (100).
+                    </div>
+                    
+                    <div className="text-[10px] text-indigo-800 bg-indigo-50 p-3 rounded-sm border border-indigo-100 font-serif leading-relaxed text-justify-mobile">
+                    Ghostdrift OS records every "living fluctuation" into the ledger to prove safety within the finite limit.
+                    </div>
+
+                    <div className="bg-white border-l-4 border-indigo-800 p-4 rounded-r-sm shadow-sm border border-stone-100">
+                    <p className="text-sm text-stone-700 font-serif mb-2 font-bold flex items-center gap-2">
+                        <Microscope size={16} className="text-indigo-600"/>
+                        Micro-Sum
+                    </p>
+                    <p className="text-[11px] text-stone-600 font-serif leading-relaxed">
+                        We rapidly sum up countless micro-fluctuations (+1, +2...) starting from E₀.
+                    </p>
+                    {primeEnergy !== null && (
+                        <p className="text-[11px] text-stone-500 font-mono bg-stone-50 border border-stone-200 rounded-sm px-3 py-2 mt-2">
+                        Start: E₀ = <span className="font-bold text-indigo-900">{effectiveInitialEnergy}</span>
+                        </p>
+                    )}
+                    </div>
+
+                    <div className="bg-white border border-stone-200 rounded-sm p-5 space-y-4 shadow-sm">
+                    <div className="bg-stone-50 p-3 rounded-sm border border-stone-200 font-mono text-center">
+                        <span className="text-sm text-indigo-900 font-bold">
+                        {/* KaTeX Formula */}
+                        <MathFormula tex="E_0 + \int (\text{micro\_fluctuations}) \le 100" />
+                        </span>
+                    </div>
+                    <div className="pt-2">
+                        <Button onClick={runCalc} label={isFinished ? "Re-Verify" : "Start Ledger Entry"} primary={!isFinished} icon={<Play size={14}/>} />
+                    </div>
+                    </div>
+
+                    {isFinished && isSafe && (
+                    <div className="animate-fade-in-up">
+                        <Button onClick={onNext} label="Conclusion: To the Oka Line" icon={<ArrowRight size={16}/>} />
+                    </div>
+                    )}
+                </div>
+            );
+
+            return (
+                <div className="flex flex-col md:grid md:grid-cols-3 gap-6 md:gap-8 w-full animate-fade-in">
+                    <div className="md:col-span-1 md:row-start-1 order-1">
+                        <Header title="Ch 4: Summing Micro-Tremors" subtitle="Micro-Transaction Ledger" icon={<FileCheck/>}/>
+                        <div className="hidden md:block"><Chapter3Controls /></div>
+                    </div>
+                
+                    <div className="md:col-span-2 flex flex-col gap-4 order-2">
+                        <div className="bg-white rounded-sm border border-stone-200 p-4 md:p-6 shadow-xl flex flex-col relative overflow-hidden min-h-[300px] md:min-h-[600px]">
+                        <div className="absolute top-0 right-0 p-6 opacity-5"><AlignLeft size={120} className="text-stone-900"/></div>
+                        
+                        <div className="flex justify-between items-end mb-4 z-10 border-b border-stone-100 pb-4">
+                            <div>
+                            <h3 className="text-[10px] md:text-xs font-bold text-stone-400 uppercase tracking-widest mb-1 font-serif">SAFETY LEDGER (MICRO)</h3>
+                            <div className="text-lg md:text-xl font-bold text-stone-800 flex items-center gap-2 font-serif">
+                                <Shield size={20} className="text-indigo-800"/>
+                                Safety Ledger
+                            </div>
+                            </div>
+                            <div className="text-right">
+                            <div className="text-[10px] md:text-xs text-stone-400">TOTAL ENERGY</div>
+                            <div className={`font-mono text-xl md:text-2xl font-bold ${isFinished ? (isSafe ? 'text-teal-700' : 'text-rose-600') : 'text-stone-300'}`}>
+                                {data.length > 0 ? data[data.length-1].currentHeight : effectiveInitialEnergy} <span className="text-xs md:text-sm text-stone-400">/ 100</span>
+                            </div>
+                            </div>
+                        </div>
+
+                        <div ref={scrollRef} className="w-full h-48 md:h-64 overflow-y-auto rounded-sm border border-stone-200 z-10 bg-stone-50 shadow-inner scroll-container relative mb-4">
+                            <table className="w-full text-left text-xs font-mono">
+                            <thead className="bg-white sticky top-0 border-b border-stone-200 text-stone-500 shadow-sm z-10">
+                                <tr>
+                                <th className="p-2 font-serif w-12 md:w-16">No.</th>
+                                <th className="p-2 font-serif">Type</th>
+                                <th className="p-2 text-right font-serif">Diff</th>
+                                <th className="p-2 text-right font-serif">Current</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white">
+                                <tr className="bg-indigo-50/30">
+                                <td className="p-2 text-stone-400 border-b border-stone-100">000</td>
+                                <td className="p-2 text-stone-800 font-bold border-b border-stone-100">INITIAL E₀</td>
+                                <td className="p-2 text-right text-stone-400 border-b border-stone-100">-</td>
+                                <td className="p-2 text-right font-bold text-indigo-900 border-b border-stone-100">{effectiveInitialEnergy}</td>
+                                </tr>
+                                {data.map(d => (
+                                <tr key={d.id} className="animate-fade-in-left border-b border-stone-100 last:border-0 hover:bg-stone-50">
+                                    <td className="p-2 text-stone-400">{String(d.id).padStart(3, '0')}</td>
+                                    <td className="p-2 text-stone-600 flex items-center gap-1">
+                                    {d.increase > 0 ? <Activity size={10} className="text-rose-400 shrink-0"/> : <Activity size={10} className="text-teal-400 shrink-0"/>}
+                                    {d.label}
+                                    </td>
+                                    <td className="p-2 text-right font-bold text-xs">
+                                        <span className={d.increase > 0 ? "text-rose-600" : "text-teal-600"}>
+                                        {d.increase > 0 ? `+${d.increase}` : `±0`}
+                                        </span>
+                                    </td>
+                                    <td className={`p-2 text-right font-bold ${d.currentHeight > SCENARIO_MICRO.limit ? 'text-rose-600' : 'text-stone-800'}`}>
+                                    {d.currentHeight}
+                                    </td>
+                                </tr>
+                                ))}
+                            </tbody>
+                            </table>
+                        </div>
+
+                        <div className="w-full bg-white border-t border-stone-200 p-3 z-20 flex justify-between items-center shadow-sm mb-4">
+                            <span className="text-[10px] md:text-xs text-stone-500 font-bold">SAFETY LIMIT</span>
+                            <span className="text-base md:text-lg font-bold text-teal-700 tracking-wider">100.00</span>
+                        </div>
+                        
+                        {isFinished && (
+                            <div className="animate-bounce-in w-full mb-4">
+                            {isSafe ? (
+                                <div className="bg-teal-50 p-4 rounded-sm border border-teal-200 text-center">
+                                    <div className="flex justify-center items-center gap-2 mb-1">
+                                    <CheckCircle2 size={24} className="text-teal-700"/>
+                                    <h4 className="text-lg font-bold text-teal-800">PROOF COMPLETED</h4>
+                                    </div>
+                                    <p className="text-xs text-teal-700 font-serif">
+                                    All countless micro-fluctuations were accumulated, but the system remained within the safety zone (100).
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="bg-rose-50 p-4 rounded-sm border border-rose-200 text-center">
+                                    <div className="flex justify-center items-center gap-2 mb-1">
+                                    <AlertTriangle size={24} className="text-rose-700"/>
+                                    <h4 className="text-lg font-bold text-rose-800">OVERFLOW</h4>
+                                    </div>
+                                    <p className="text-xs text-rose-700 font-serif">
+                                    Accumulation of micro-fluctuations exceeded the limit.<br/>
+                                    Please return to the previous chapter and <strong className="font-bold">increase "Emotion" (Slider Right)</strong> to absorb the shock.
+                                    </p>
+                                </div>
+                            )}
+                            </div>
+                        )}
+
+                        {isFinished && isSafe && (
+                            <div className="animate-fade-in mt-auto">
+                            <div className="bg-stone-50 p-3 md:p-4 rounded-sm border border-stone-200 relative overflow-hidden group hover:border-indigo-200 transition-colors">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-indigo-800"></div>
+                                <h3 className="text-xs font-bold text-indigo-900 mb-2 flex items-center gap-2 font-serif">
+                                <Globe size={14} className="text-indigo-700"/>
+                                What Kiyoshi Oka left to the world
+                                </h3>
+                                <div className="space-y-2 text-[10px] text-stone-600 font-serif leading-relaxed text-justify-mobile">
+                                <p>
+                                    In the 1930s-50s, Kiyoshi Oka solved difficult problems in "Theory of Functions of Several Complex Variables" and built the foundation of modern mathematics. He continued to speak that "Passion" and "Emotion" are at the root of mathematics.
+                                </p>
+                                <p className="text-indigo-800 font-bold border-t border-stone-200 pt-2">
+                                    Ghostdrift OS revives this order of "Emotion first, Logic later" as a system design in the modern age.
+                                </p>
+                                </div>
+                            </div>
+                            </div>
+                        )}
+                        </div>
+                    </div>
+
+                    <div className="md:hidden order-3"><Chapter3Controls /></div>
+                </div>
+            );
+        };
+
+        const Chapter4 = ({ onRestart }) => {
+            return (
+                <div className="flex flex-col items-center justify-center space-y-8 md:space-y-12 animate-fade-in w-full py-8 md:py-12">
+                <div className="text-center space-y-3">
+                    <h2 className="text-2xl md:text-4xl font-black text-stone-900 font-serif">AI TRUST OS</h2>
+                    <p className="text-indigo-800 font-mono tracking-widest text-[10px] md:text-sm bg-indigo-50 px-3 py-1 md:px-4 rounded-full inline-block">WASAN 2.0 PROTOCOL</p>
+                    
+                    <p className="text-stone-500 font-serif text-xs md:text-sm mt-4 max-w-lg mx-auto leading-relaxed px-4 text-justify-mobile">
+                    Accepted invisible fluctuations with <strong className="text-indigo-800">Emotion</strong>, <br className="md:hidden"/>
+                    and safety-proofed the rest with <strong className="text-teal-700">Finite Addition</strong>.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 w-full max-w-4xl">
+                    <div className="bg-white border border-stone-200 p-6 md:p-8 rounded-sm flex flex-col gap-4 md:gap-6 shadow-sm opacity-80 hover:opacity-100 transition-opacity relative group">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 bg-stone-100 rounded-sm"><TrendingUp size={20} className="text-stone-500"/></div>
+                        <div>
+                        <h3 className="font-bold text-stone-700">CONVENTIONAL</h3>
+                        <p className="text-[10px] text-stone-400 font-mono">AI believing in Smoothness</p>
+                        </div>
+                    </div>
+                    <div className="space-y-4 flex-grow">
+                        <div className="p-3 bg-stone-50 rounded-sm border border-stone-100">
+                        <div className="text-[10px] md:text-xs text-stone-400 mb-1 font-bold">ASSUMPTION</div>
+                        <div className="text-xs md:text-sm text-stone-600 font-serif">Believes invisible gaps are "smooth"</div>
+                        </div>
+                        <div className="p-3 bg-stone-50 rounded-sm border border-stone-100">
+                        <div className="text-[10px] md:text-xs text-stone-400 mb-1 font-bold">SAFETY</div>
+                        <div className="text-xs md:text-sm text-stone-600 font-serif">Probabilistic (No Guarantee)</div>
+                        </div>
+                    </div>
+                    <div className="mt-2 text-center text-rose-600 text-[10px] md:text-xs font-bold uppercase tracking-widest border-t border-stone-100 pt-4">
+                        Structurally Vulnerable
+                    </div>
+                    </div>
+
+                    <div className="bg-white border-2 border-indigo-100 p-6 md:p-8 rounded-sm flex flex-col gap-4 md:gap-6 shadow-xl shadow-indigo-100/50 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 blur-3xl rounded-full"></div>
+                    <div className="flex items-center gap-3 mb-2 relative z-10">
+                        <div className="p-2 bg-indigo-900 text-white rounded-sm shadow-md"><Lock size={20} /></div>
+                        <div>
+                        <h3 className="font-bold text-indigo-900">WASAN 2.0</h3>
+                        <p className="text-[10px] text-indigo-500 font-mono">FINITE CLOSURE · OKA LINE</p>
+                        </div>
+                    </div>
+                    <div className="space-y-4 flex-grow relative z-10">
+                        <div className="p-3 bg-indigo-50/50 rounded-sm border border-indigo-100">
+                        <div className="text-[10px] md:text-xs text-indigo-400 mb-1 font-bold">METHOD</div>
+                        <div className="text-xs md:text-sm text-indigo-900 font-serif">Add up worst-case max values</div>
+                        </div>
+                        <div className="p-3 bg-indigo-50/50 rounded-sm border border-indigo-100">
+                        <div className="text-[10px] md:text-xs text-indigo-400 mb-1 font-bold">SAFETY</div>
+                        <div className="text-xs md:text-sm text-indigo-900 font-serif">Mathematically Proven (Absolutely Safe)</div>
+                        </div>
+                        <p className="text-[10px] md:text-[11px] text-stone-500 italic font-serif leading-relaxed mt-2 border-t border-indigo-50 pt-2 text-justify-mobile">
+                        Abandoning "probably okay" predictions and protecting safety only with "calculable finite numbers". That is the new rule of AI. The idea is to accept the fluctuations of the world on the OS side so as not to destroy the emotion at the center of humans.
+                        </p>
+                    </div>
+                    <div className="mt-2 text-center text-indigo-700 text-[10px] md:text-xs font-bold uppercase tracking-widest border-t border-indigo-100 pt-4 relative z-10">
+                        Emotion-Respecting AI OS
+                    </div>
+                    </div>
+                </div>
+
+                <div className="w-full max-w-4xl pt-8 border-t border-stone-100 flex flex-col items-center gap-4">
+                    <div className="text-center w-full px-4">
+                        <div className="flex justify-center items-center gap-2 text-stone-400 text-xs font-mono uppercase tracking-widest mb-3">
+                        <Cpu size={14}/> Next Step
+                        </div>
+                        
+                        <a 
+                        href="https://ghostdrifttheory.github.io/prime-counter-demo/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="group relative inline-flex items-center gap-3 px-6 py-4 md:px-8 md:py-4 bg-stone-900 text-white rounded-sm hover:bg-stone-800 transition-all shadow-lg hover:shadow-xl w-full md:w-auto justify-center"
+                        >
+                        <div className="flex flex-col items-start text-left">
+                            <span className="text-[10px] text-stone-400 font-mono uppercase tracking-widest">Prototype</span>
+                            <span className="font-bold font-serif text-sm md:text-base">Go to Prime Calculation OS (Ghostdrift Prime)</span>
+                        </div>
+                        <ArrowRight size={20} className="text-stone-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                        
+                        <div className="absolute top-0 left-0 w-full h-full overflow-hidden rounded-sm pointer-events-none">
+                            <div className="absolute top-0 -left-full w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                        </div>
+                        </a>
+
+                        <p className="text-[10px] text-stone-400 font-serif mt-4 leading-relaxed">
+                        This finite closure principle operates on exactly the same structure as Prime Gravity Control (Ghost Prime).
+                        </p>
+                    </div>
+                </div>
+
+                <Button onClick={onRestart} label="RESTART DEMO" icon={<RefreshCw size={16}/>} />
+                </div>
+            );
+        };
+
+        const AdvancedPhase = ({ onBack }) => {
+            return (
+                <div className="w-full max-w-4xl mx-auto animate-fade-in pb-16 px-2 md:px-0">
+                <div className="mb-8 text-center">
+                    <div className="inline-flex items-center justify-center p-3 bg-stone-100 rounded-full text-stone-600 mb-4">
+                    <Book size={24} />
+                    </div>
+                    <h2 className="text-xl md:text-3xl font-bold font-serif text-stone-900 mb-2 leading-tight">
+                    Multivariable Analysis / Indeterminate Domain Ideals and <br/> "Prime Calculation OS"
+                    </h2>
+                    <p className="text-[10px] md:text-xs text-stone-500 font-mono tracking-widest uppercase">
+                    Gap between Oka's Mathematics & Ghostdrift Implementation
+                    </p>
+                </div>
+
+                <div className="space-y-8 md:space-y-12">
+                    <div className="bg-stone-50 p-4 md:p-6 rounded-sm border border-stone-200 text-xs md:text-sm font-serif leading-relaxed text-stone-600 text-justify-mobile">
+                    <p>* Note: This section is for advanced users interested in Oka Kiyoshi or Multivariable Analysis.</p>
+                    <p className="mt-2">
+                        The purpose of this demo is to re-experience Oka's mathematical pinnacle as modern OS technology. To avoid confusing historical facts with technical implementation, we explicitly distinguish between <strong className="text-indigo-900"> [Oka's Achievement] </strong> and <strong className="text-teal-700"> [Ghostdrift Implementation] </strong>.
+                    </p>
+                    </div>
+
+                    <section className="space-y-4 md:space-y-6">
+                    <h3 className="text-lg md:text-xl font-bold text-stone-800 border-l-4 border-indigo-900 pl-4 py-1 font-serif">
+                        1. The world of the "Whole Domain" seen by the mathematician at Kimitoge
+                        <span className="block text-[10px] md:text-xs font-normal text-stone-400 mt-1 font-sans">Multivariable Analysis / Domain of Holomorphy</span>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <div className="bg-white border border-stone-200 p-4 md:p-6 rounded-sm shadow-sm">
+                        <div className="flex items-center gap-2 mb-4 text-indigo-900 font-bold border-b border-indigo-100 pb-2">
+                            <History size={18} />
+                            <span>Oka's Achievement</span>
+                        </div>
+                        <div className="text-xs md:text-sm text-stone-600 font-serif leading-7 space-y-4 text-justify-mobile">
+                            <p>
+                            Oka's specialty was "Theory of Functions of Several Complex Variables"—not one complex variable, but a world of <span className="font-mono bg-stone-100 px-1">n complex variables (ℂⁿ)</span>.
+                            </p>
+                            <p>
+                            The core he pursued was "What kind of domain is a domain of holomorphy?", or "What is a domain that is 'complete as a world' and cannot be analytically extended anywhere else?"
+                            </p>
+                            <p>
+                            Solving the Inverse Hartogs Problem, Cousin Problems, and the Levi Problem (Pseudo-convexity), he established a thorough stance that <strong className="border-b border-stone-300">"Global Structure"</strong>, not "Local Differentiation", determines the essence.
+                            </p>
+                        </div>
+                        </div>
+                        <div className="bg-indigo-50/30 border border-indigo-100 p-4 md:p-6 rounded-sm shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-50 rounded-full -mr-8 -mt-8 blur-xl"></div>
+                        <div className="flex items-center gap-2 mb-4 text-teal-800 font-bold border-b border-teal-100 pb-2 relative z-10">
+                            <Cpu size={18} />
+                            <span>Ghostdrift Implementation</span>
+                        </div>
+                        <div className="text-xs md:text-sm text-stone-600 font-serif leading-7 space-y-4 relative z-10 text-justify-mobile">
+                            <p>
+                            The "Whole Domain Slider" and "Hole Creation UI" in Chapter 2 translate this sense of "changing the nature of the world when tweaking the whole domain" into a 1D model.
+                            </p>
+                            <ul className="list-disc list-outside ml-4 space-y-1 text-stone-500 text-[10px] md:text-xs">
+                            <li>When user moves range or hole, OS recalculates "finite closure" state</li>
+                            <li>Emotion gauge fluctuates not by "local derivative" but by "structure of whole range"</li>
+                            </ul>
+                            <p className="text-teal-900 font-bold text-[10px] md:text-xs mt-2">
+                            * Inheriting only the philosophy that "Safety is determined by whether the domain is closed as a whole, not by local calculation" from Oka's globalism into OS design.
+                            </p>
+                        </div>
+                        </div>
+                    </div>
+                    </section>
+
+                    <section className="space-y-4 md:space-y-6">
+                    <h3 className="text-lg md:text-xl font-bold text-stone-800 border-l-4 border-indigo-900 pl-4 py-1 font-serif">
+                        2. Indeterminate Domain Ideals: "The Domain is Not Yet Decided"
+                        <span className="block text-[10px] md:text-xs font-normal text-stone-400 mt-1 font-sans">Grasping only conditions first (Core of Multivariable Analysis)</span>
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                        <div className="bg-white border border-stone-200 p-4 md:p-6 rounded-sm shadow-sm">
+                        <div className="flex items-center gap-2 mb-4 text-indigo-900 font-bold border-b border-indigo-100 pb-2">
+                            <History size={18} />
+                            <span>Oka's Achievement</span>
+                        </div>
+                        <div className="text-xs md:text-sm text-stone-600 font-serif leading-7 space-y-4 text-justify-mobile">
+                            <p>
+                            In the latter half of his work, Oka introduced the unique concept of <span className="font-bold text-stone-800">"Indeterminate Domain Ideals"</span>.
+                            </p>
+                            <p>
+                            Usually, one thinks "There is a Domain D, and we consider functions on it." He reversed this: "At a stage where D is not yet decided, if there is a 'family of functions (bundle of conditions)' with certain properties, D emerges in reverse."
+                            </p>
+                            <p>
+                            This was a radical shift: "The Domain (World) does not come first; 'Conditions to be met' come first, and the appropriate Domain is determined later."
+                            </p>
+                        </div>
+                        </div>
+                        <div className="bg-indigo-50/30 border border-indigo-100 p-4 md:p-6 rounded-sm shadow-sm relative overflow-hidden">
+                        <div className="flex items-center gap-2 mb-4 text-teal-800 font-bold border-b border-teal-100 pb-2 relative z-10">
+                            <Cpu size={18} />
+                            <span>Ghostdrift Implementation</span>
+                        </div>
+                        <div className="text-xs md:text-sm text-stone-600 font-serif leading-7 space-y-4 relative z-10 text-justify-mobile">
+                            <p>
+                            The <span className="font-bold text-stone-800">Integer Ledger (Σ1 Ledger)</span> appearing in Chapter 4 is an implementation of this structure.
+                            </p>
+                            <p>
+                            Ghostdrift OS holds a "bundle of conditions (inequalities) that must hold in a finite window and must not break even if the range extends in the future." That bundle determines the "domain (finite closure domain) that this OS can safely handle."
+                            </p>
+                            <p className="text-teal-900 font-bold text-[10px] md:text-xs mt-2">
+                            * Reproducing the direction of the logical arrow "Conditions (Ideals) first, Domain determined later" as OS safety design (Ledger First).
+                            </p>
+                        </div>
+                        </div>
+                    </div>
+                    </section>
+
+                    <section className="space-y-4 md:space-y-6">
+                    <h3 className="text-lg md:text-xl font-bold text-stone-800 border-l-4 border-indigo-900 pl-4 py-1 font-serif">
+                        3. Emotion → Prime Calculation OS → finite closure
+                        <span className="block text-[10px] md:text-xs font-normal text-stone-400 mt-1 font-sans">How to connect Emotion Layer to the World of Primes</span>
+                    </h3>
+                    <div className="bg-white border border-stone-200 p-4 md:p-8 rounded-sm shadow-sm">
+                        <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
+                            <div className="flex-1 space-y-4">
+                            <div className="flex items-center gap-2 mb-2 text-indigo-900 font-bold">
+                                <Heart size={18} />
+                                <span>Oka: Mathematics of Emotion</span>
+                            </div>
+                            <p className="text-xs md:text-sm text-stone-600 font-serif leading-relaxed text-justify-mobile">
+                                In "Spring Evening Ten Tales" (Shunsho Juwa), Oka said, "The center of a human being is Emotion," and "Mathematics is one of the academic arts to express one's own emotion outwardly." For him, <span className="font-bold">Emotion (the power to feel harmony) comes first</span>, and logic/calculation follows.
+                            </p>
+                            </div>
+                            <div className="hidden md:flex items-center justify-center pt-8">
+                            <ArrowRight className="text-stone-300" size={32} />
+                            </div>
+                            <div className="flex-1 space-y-4">
+                            <div className="flex items-center gap-2 mb-2 text-teal-800 font-bold">
+                                <Layers size={18} />
+                                <span>Ghostdrift: Prime Calculation OS Layer</span>
+                            </div>
+                            <p className="text-xs md:text-sm text-stone-600 font-serif leading-relaxed text-justify-mobile">
+                                Here, <span className="font-bold">"Prime Calculation OS"</span> appears. In Chapter 3, we view prime distribution as the "Source of Harmony" and visualize the smoothness of the waves created by their overlap as the <span className="font-bold">"Emotion Gauge"</span>. Keeping that wave turbulence (disharmony) within an allowable range (Limit 100) becomes the OS's Safety (Security).
+                            </p>
+                            </div>
+                        </div>
+                        <div className="mt-6 md:mt-8 pt-6 border-t border-stone-100">
+                            <div className="flex items-center gap-2 mb-3 text-stone-800 font-bold font-serif text-sm">
+                            <Lightbulb size={16} className="text-amber-500" />
+                            <span>Correspondence of Three Layers</span>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 text-center text-xs font-serif">
+                            <div className="p-3 bg-stone-50 rounded border border-stone-100">
+                                <div className="font-bold text-indigo-900 mb-1">Oka's "Emotion"</div>
+                                <div className="text-stone-500">Mind feeling harmony</div>
+                            </div>
+                            <div className="hidden md:block text-stone-300 py-3">↔</div>
+                            <div className="p-3 bg-indigo-50 rounded border border-indigo-100">
+                                <div className="font-bold text-indigo-900 mb-1">"Wave" of Prime Calculation OS</div>
+                                <div className="text-stone-500">Smoothness / Stability</div>
+                            </div>
+                            <div className="hidden md:block text-stone-300 py-3">↔</div>
+                            <div className="p-3 bg-teal-50 rounded border border-teal-100">
+                                <div className="font-bold text-teal-800 mb-1">OS "Safety Margin"</div>
+                                <div className="text-stone-500">finite closure / δ_pos</div>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                    </section>
+
+                    <div className="bg-stone-800 text-stone-300 p-6 md:p-8 rounded-sm shadow-lg text-center space-y-6">
+                    <h4 className="text-base md:text-lg font-bold font-serif text-white">Summary of Boundaries</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 text-left text-xs leading-relaxed font-serif">
+                        <div>
+                        <h5 className="text-indigo-300 font-bold mb-2 border-b border-stone-600 pb-1">What Oka Kiyoshi Proved/Claimed</h5>
+                        <ul className="list-disc list-outside ml-4 space-y-1">
+                            <li>Resolution of Domain of Holomorphy, Cousin Problems, Inverse Hartogs Problem in Multivariable Analysis</li>
+                            <li>Theoretical frameworks like Indeterminate Domain Ideals, Principle of Passage to the Air (Joku Iko)</li>
+                            <li>Philosophy that "Mathematics is an expression of Emotion"</li>
+                        </ul>
+                        </div>
+                        <div>
+                        <h5 className="text-teal-300 font-bold mb-2 border-b border-stone-600 pb-1">What Ghostdrift Added/Implemented</h5>
+                        <ul className="list-disc list-outside ml-4 space-y-1">
+                            <li>Prime Calculation OS (Interpretation of prime landscape as physical gravity field)</li>
+                            <li>Concrete implementation of Yukawa kernel, δ_pos, finite closure OS, Σ₁ Ledger</li>
+                            <li>UI design linking them to Emotion Gauge and Energy Index</li>
+                        </ul>
+                        </div>
+                    </div>
+                    <p className="text-[10px] md:text-xs text-stone-400 border-t border-stone-700 pt-4 mt-4 text-justify-mobile">
+                        This demo <span className="text-white font-bold">"translates" and implements</span> the worldview Oka Kiyoshi saw into the language of modern engineering/OS design, and does not re-prove Oka's theorems themselves.
+                    </p>
+                    <button 
+                        onClick={onBack}
+                        className="mt-4 px-6 py-3 bg-white text-stone-900 rounded-sm font-bold text-xs hover:bg-stone-200 transition-colors w-full md:w-auto"
+                    >
+                        Back to Demo
+                    </button>
+                    </div>
+                </div>
+                </div>
+            );
+        };
+
+        // --- Main App Component ---
+        function App() {
+            const [phase, setPhase] = useState('intro');
+            const [primeEnergy, setPrimeEnergy] = useState(null);
+
+            // Scroll to top when phase changes
+            useEffect(() => {
+                window.scrollTo(0, 0);
+            }, [phase]);
+
+            return (
+                <div className={`min-h-screen ${COLORS.bg} ${COLORS.text} font-sans selection:bg-indigo-100 selection:text-indigo-900 flex flex-col`}>
+                {/* Header */}
+                <header className="border-b border-stone-200 bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+                    <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 md:py-4 flex justify-between items-center">
+                    <div className="flex items-center gap-2 md:gap-3 cursor-pointer group" onClick={() => setPhase('intro')}>
+                        <div 
+                        className="w-7 h-7 md:w-8 md:h-8 bg-indigo-900 rounded-sm flex items-center justify-center font-serif font-bold text-base md:text-lg text-white shadow-md group-hover:bg-indigo-800 transition-colors"
+                        >
+                        WA
+                        </div>
+                        <div className="flex flex-col">
+                        <h1 className="text-xs md:text-sm font-bold tracking-widest uppercase text-stone-800 leading-none">
+                            Wasan 2.0 <span className="text-indigo-700 font-serif ml-1">ADIC</span>
+                        </h1>
+                        <p className="text-[8px] md:text-[10px] text-stone-500 font-mono tracking-widest mt-0.5">
+                            Oka Kiyoshi Edition
+                        </p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                        <nav className="flex items-center gap-1 bg-stone-100 p-1 rounded-full border border-stone-200 overflow-x-auto max-w-[150px] md:max-w-none scrollbar-hide">
+                        {['intro', 'chapter1', 'chapter2', 'chapterPrime', 'chapter3', 'chapter4'].map((p, i) => (
+                            <button
+                            key={p}
+                            onClick={() => setPhase(p)}
+                            className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex shrink-0 items-center justify-center text-[10px] font-serif font-bold transition-all ${
+                                phase === p 
+                                ? 'bg-indigo-800 text-white shadow-md' 
+                                : 'text-stone-400 hover:text-stone-600 hover:bg-stone-200'
+                            }`}
+                            >
+                            {i === 0 ? 'In' : i}
+                            </button>
+                        ))}
+                        </nav>
+                        
+                        <button
+                        onClick={() => setPhase('advanced')}
+                        className={`flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-1.5 rounded-full text-[10px] font-bold border transition-all ${
+                            phase === 'advanced'
+                            ? 'bg-stone-800 text-white border-stone-900 shadow-md'
+                            : 'bg-white text-stone-500 border-stone-200 hover:bg-stone-50 hover:text-stone-800'
+                        }`}
+                        >
+                        <Book size={12} />
+                        <span className="hidden sm:inline">Adv</span>
+                        </button>
+                    </div>
+                    </div>
+                </header>
+
+                {/* Main Content */}
+                <main className="flex-grow flex flex-col justify-start p-4 md:p-6 w-full max-w-6xl mx-auto">
+                    <div className="w-full transition-all duration-500 ease-in-out">
+                    {phase === 'intro' && <IntroPhase onNext={() => setPhase('chapter1')} onAdvanced={() => setPhase('advanced')} />}
+                    {phase === 'chapter1' && <Chapter1 onNext={() => setPhase('chapter2')} />}
+                    {phase === 'chapter2' && <Chapter2 onNext={() => setPhase('chapterPrime')} />}
+                    
+                    {phase === 'chapterPrime' && (
+                        <ChapterPrime 
+                        onNext={() => setPhase('chapter3')} 
+                        onPrimeEnergyChange={setPrimeEnergy}
+                        />
+                    )}
+                    
+                    {phase === 'chapter3' && (
+                        <Chapter3 
+                        onNext={() => setPhase('chapter4')} 
+                        primeEnergy={primeEnergy}
+                        />
+                    )}
+                    
+                    {phase === 'chapter4' && <Chapter4 onRestart={() => setPhase('intro')} />}
+                    {phase === 'advanced' && <AdvancedPhase onBack={() => setPhase('intro')} />}
+                    </div>
+                </main>
+                
+                {/* Footer Signature */}
+                <footer className="w-full py-4 text-center text-stone-400 text-[10px] font-serif border-t border-stone-100 mt-8">
+                    © 2025 Ghost Drift Theory by Manny
+                </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
