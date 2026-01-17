@@ -6,7 +6,7 @@
 
 This demo is part of the **AI Safety & AI Accountability Project**, demonstrating how Responsibility Engineering integrates Oka Kiyoshi's philosophy of "Emotion" with "Finite Closure" to prevent AI from falling into local blind spots.
 
-[**🌐 View Live Demo**](https://www.google.com/url?sa=E&source=gmail&q=https://ghostdrifttheory.github.io/wasan-oka-edition-demo/)
+[**🌐 View Live Demo**](https://ghostdrifttheory.github.io/Okakiyoshi-Emotive-OS-Demo/)
 
 ## **📖 Overview**
 
@@ -59,7 +59,7 @@ Source: GhostDrift Mathematical Research Project
 Project: Wasan 2.0 (Oka Kiyoshi Edition)  
 Concept: Emotion-Based Responsibility Engineering  
 Institution: GhostDrift Mathematical Research Institute (ゴーストドリフト数理研究所)  
-URL: https://ghostdrifttheory.github.io/wasan-oka-edition-demo/
+URL: [https://ghostdrifttheory.github.io/Okakiyoshi-Emotive-OS-Demo/](https://ghostdrifttheory.github.io/Okakiyoshi-Emotive-OS-Demo/)
 
 ## **🛡️ License & Patent Notice**
 
